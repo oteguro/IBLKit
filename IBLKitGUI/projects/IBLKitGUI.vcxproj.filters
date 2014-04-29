@@ -5,13 +5,67 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="header">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{36dec41a-bf47-4ac1-b910-d7191e1c8f54}</UniqueIdentifier>
     </Filter>
-    <Filter Include="resource">
+    <Filter Include="resource files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="external">
+      <UniqueIdentifier>{8ad572d6-26a2-4492-9ec2-cbc28a795197}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="external\DirectXTex">
+      <UniqueIdentifier>{63c32f7b-08e8-448e-8e30-aa8408b3724a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="external\DirectXTex\DDSTextureLoader">
+      <UniqueIdentifier>{aad43843-3e35-4d9b-8bcc-8b6f7b9322ae}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\ibl_kit_gui_app.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\DirectXTex\DDSTextureLoader\DDSTextureLoader.cpp">
+      <Filter>external\DirectXTex\DDSTextureLoader</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\resource\resource.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\resource\targetver.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\external\DirectXTex\DDSTextureLoader\DDSTextureLoader.h">
+      <Filter>external\DirectXTex\DDSTextureLoader</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\resource\ibl_kit_gui.rc">
+      <Filter>resource files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\src\resource\ibl_kit_gui.ico">
+      <Filter>resource files</Filter>
+    </Image>
+    <Image Include="..\src\resource\small.ico">
+      <Filter>resource files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\shaders\basic_sphere.hlsl">
+      <Filter>shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\src\shaders\basic_background.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
