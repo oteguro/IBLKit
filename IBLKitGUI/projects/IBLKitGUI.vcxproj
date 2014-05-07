@@ -27,13 +27,15 @@
     <Image Include="..\src\resource\small.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\shaders\basic_sphere.hlsl">
+    <None Include="..\src\shaders\basic_background.hlsl">
       <FileType>Document</FileType>
-      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\shaders\basic_background.hlsl">
+    <None Include="datas\shaders\basic_background.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="datas\shaders\basic_sphere.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

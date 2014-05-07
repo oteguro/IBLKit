@@ -59,13 +59,12 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\shaders\basic_sphere.hlsl">
+    <None Include="..\src\shaders\basic_background.hlsl" />
+    <None Include="datas\shaders\basic_background.hlsl">
       <Filter>shaders</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="..\src\shaders\basic_background.hlsl">
+    <None Include="datas\shaders\basic_sphere.hlsl">
       <Filter>shaders</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>
