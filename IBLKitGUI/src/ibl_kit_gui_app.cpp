@@ -7,6 +7,7 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
+#include <DirectXTex.h>
 
 #include <assert.h>
 #include <stdlib.h>
@@ -16,6 +17,8 @@
 
 #include "../external/DirectXTex/DDSTextureLoader/DDSTextureLoader.h"
 #include "./resource/resource.h"
+
+#include <iblkit.h>
 
 using namespace DirectX;
 
@@ -99,7 +102,14 @@ TfxCB                       sscb;
 InvViewCB                   ivcb;
 
 
+iblkit::Context             iblContext;
+ID3D11Texture2D*            filteredIBL         = nullptr;
+ID3D11ShaderResourceView*   filteredSRV         = nullptr;
+ID3D11UnorderedAccessView*  filteredUAV[6]      ={nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+
+bool                        anim                = false;
 float                       rad                 = 0.0f;
+int                         displayMode         = 0;
 
 // 
 ATOM                    MyRegisterClass (HINSTANCE hInstance);
@@ -239,6 +249,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDOWN:
         break;
     case WM_LBUTTONUP:
+        break;
+    case WM_KEYDOWN:
+        switch(wParam)
+        {
+        case '0':
+            displayMode = 0;
+            break;
+        case '1':
+            displayMode = 1;
+            break;
+        case '2':
+            displayMode = 2;
+            break;
+        case 'a':
+        case 'A':
+            anim = !anim;
+            break;
+        default:
+            break;
+        }
         break;
     case WM_PAINT:
         hdc = BeginPaint(hWnd, &ps);
@@ -670,6 +700,28 @@ HRESULT InitDevice()
         return hr;
     }
 
+    // IBLkit 
+    iblContext.m_d3dDevice      = d3dDevice;
+    iblContext.m_d3dImContext   = immediateContext;
+
+    iblkit::FilteringCubemap(&iblContext, baseIBL, &filteredIBL);
+
+    D3D11_TEXTURE2D_DESC tex2dDesc;
+    filteredIBL->GetDesc(&tex2dDesc);
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
+    ZeroMemory(&SRVDesc, sizeof(SRVDesc));
+    SRVDesc.Format          = tex2dDesc.Format;
+    SRVDesc.ViewDimension   = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    SRVDesc.TextureCube.MipLevels = tex2dDesc.MipLevels;
+    SRVDesc.TextureCube.MostDetailedMip = 0;
+    
+    hr = d3dDevice->CreateShaderResourceView(filteredIBL, &SRVDesc, &filteredSRV);
+    if(FAILED(hr))
+    {
+        return hr;
+    }
+
     return hr;
 }
 
@@ -680,6 +732,14 @@ void CleanupDevice()
         immediateContext->ClearState();
     }
 
+    if (filteredSRV)
+    {
+        filteredSRV     ->Release();
+    }
+    if(filteredIBL)
+    {
+        filteredIBL     ->Release();
+    }
     if(blendState)
     {
         blendState      ->Release();
@@ -766,16 +826,31 @@ void CleanupDevice()
     }
 }
 
+void SaveTextureToDDSFile(ID3D11Resource* tex, LPCWSTR filename)
+{   // from http://directxtex.codeplex.com/wikipage?title=CaptureTexture 
+    DirectX::ScratchImage image;
+
+    HRESULT hr;
+    hr = DirectX::CaptureTexture(d3dDevice, immediateContext, tex, image);
+    if(FAILED(hr))
+    {
+        return;
+    }
+    hr = DirectX::SaveToDDSFile(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DDS_FLAGS_NONE, filename);
+    if(FAILED(hr))
+    {
+        return;
+    }
+}
+
 void Update()
 {
-    //XMVECTOR iv;
-
     // uniform. 
     UINT width;
     UINT height;
     ClientRectSize(width, height);
 
-    const float R = 5.0f;
+    const float R = 4.0f;
     XMVECTOR Eye = XMVectorSet(R*sinf(rad), 0.0f, R*cosf(rad), 0.0f);
     XMVECTOR At  = XMVectorSet(0.0f, 0.0f,  0.0f, 0.0f);
     XMVECTOR Up  = XMVectorSet(0.0f, 1.0f,  0.0f, 0.0f);
@@ -790,17 +865,26 @@ void Update()
     tfxcb.Projection             = XMMatrixTranspose(projectionMatrix);
 
     sscb                         = tfxcb;
-    sscb.World                   = viewMatrix; // transpose(transpose()) = E 
+    sscb.World                   = viewMatrix; // transpose(transpose(V)) == V 
 
     eyecb.Eye                    = Eye;
 
     ivcb.InvView                 = viewMatrix;
 
-    rad += 0.0001f;
-    if(rad > 2.0f*PIf)
+    if(anim)
     {
-        rad -= 2.0f*PIf;
+        rad += 0.0001f;
+        if (rad >  2.0f*PIf)
+        {
+            rad -= 2.0f*PIf;
+        }
     }
+
+    if(iblContext.Processing())
+    {
+        ProcessFiltering(&iblContext);
+    }
+
 }
 
 void Render()
@@ -877,7 +961,14 @@ void Render()
     immediateContext->PSSetConstantBuffers      (1, 1, &eyeCB);
     immediateContext->PSSetConstantBuffers      (2, 1, &ivCB);
 
-    immediateContext->PSSetShaderResources      (0, 1, &baseSRV);
+    if     (displayMode == 0)
+    {
+        immediateContext->PSSetShaderResources  (0, 1, &baseSRV);
+    }
+    else if(displayMode == 1)
+    {
+        immediateContext->PSSetShaderResources  (0, 1, &filteredSRV);
+    }
     immediateContext->PSSetSamplers             (0, 1, &baseSMP);
 
     immediateContext->IASetPrimitiveTopology    (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

@@ -9,15 +9,35 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{5c8fd165-64ef-47e5-b988-f9927a1dd597}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\_IMPL">
+      <UniqueIdentifier>{69652759-0c73-4fb4-95dd-92c6ddf12df0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\context.h">
       <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\iblkit.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\source\_IMPL\scope_exit.h">
+      <Filter>src\_IMPL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\context.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\source\iblkit.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\shaders\cubemap_filter.hlsl">
+      <Filter>shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
