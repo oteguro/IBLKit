@@ -732,6 +732,8 @@ void CleanupDevice()
         immediateContext->ClearState();
     }
 
+    iblContext.Release();
+
     if (filteredSRV)
     {
         filteredSRV     ->Release();

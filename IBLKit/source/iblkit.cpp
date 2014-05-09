@@ -104,6 +104,19 @@ namespace iblkit
             }
         }
 
+        HRESULT CreateComputeShader(ID3D11Device* device, const BYTE* buffer, size_t bufferSize, ID3D11ComputeShader** cs)
+        {
+            HRESULT hr;
+
+            hr = device->CreateComputeShader(buffer, bufferSize, NULL, cs);
+            if (FAILED(hr))
+            {
+                return hr;
+            }
+
+            return hr;
+        }
+
     } // unnamed namespace 
 
     // Start. 
@@ -140,6 +153,18 @@ namespace iblkit
             return false;
         }
 
+        D3D11_TEXTURE2D_DESC tex2DDesc;
+        inCubemap->GetDesc ( &tex2DDesc);
+
+        if(context->m_filterCS == nullptr)
+        {
+            HRESULT hr = CreateComputeShader(context->m_d3dDevice, &cubemap_filter[0], sizeof(cubemap_filter), &context->m_filterCS);
+            if(FAILED(hr))
+            {
+                return false;
+            }
+        }
+
         UINT width = 0, height = 0, mipCount = 0;
         const UINT arrayCount = 6;
         GetCubemapWidthHeightMipCount(inCubemap, width, height, mipCount);
@@ -158,7 +183,7 @@ namespace iblkit
             desc.Height             = height;
             desc.MipLevels          = mipCount;
             desc.ArraySize          = 6;
-            desc.Format             = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            desc.Format             = DXGI_FORMAT_R16G16B16A16_FLOAT; // FIXED. 
             desc.SampleDesc.Count   = 1;
             desc.SampleDesc.Quality = 0;
             desc.Usage              = D3D11_USAGE_DEFAULT;
@@ -182,29 +207,50 @@ namespace iblkit
                 return false;
             }
         }
-//         if(*outUAV     == nullptr)
-//         {
-//             for(UINT i=0; i<6; ++i)
-//             {
-//                 D3D11_UNORDERED_ACCESS_VIEW_DESC desc;
-//                 desc.Format                         = DXGI_FORMAT_R16G16B16A16_FLOAT;
-//                 desc.ViewDimension                  = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-//                 desc.Texture2DArray.MipSlice        = mipCount - 1;
-//                 desc.Texture2DArray.FirstArraySlice = i;
-//                 desc.Texture2DArray.ArraySize       = 6;
-// 
-//                 HRESULT hr = d->CreateUnorderedAccessView(*outCubemap, &desc, &outUAV[i]);
-//                 if (FAILED(hr))
-//                 {
-//                     return false;
-//                 }
-//             }
-//         }
+
+        context->m_uavCount = mipCount * arrayCount;
+        context->m_outCubemap = new ID3D11UnorderedAccessView* [context->m_uavCount];
+
+        for(UINT i=0; i<context->m_uavCount; ++i)
+        {
+            D3D11_UNORDERED_ACCESS_VIEW_DESC desc;
+            desc.Format                         = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            desc.ViewDimension                  = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+            desc.Texture2DArray.MipSlice        = i / arrayCount;
+            desc.Texture2DArray.FirstArraySlice = i % arrayCount;
+            desc.Texture2DArray.ArraySize       = 1;
+
+            HRESULT hr = d->CreateUnorderedAccessView(*outCubemap, &desc, &context->m_outCubemap[i]);
+            if (FAILED(hr))
+            {
+                return false;
+            }
+        }
+
+        if(context->m_inCubemapSRV == nullptr)
+        {
+            D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+
+            desc.Format                         = tex2DDesc.Format;
+            desc.ViewDimension                  = D3D11_SRV_DIMENSION_TEXTURECUBE;
+            desc.TextureCube.MipLevels          = mipCount;
+            desc.TextureCube.MostDetailedMip    = 0;
+
+            HRESULT hr = d->CreateShaderResourceView(inCubemap, &desc, &context->m_inCubemapSRV);
+            if (FAILED(hr))
+            {
+                return false;
+            }
+        }
+
+        (*outCubemap)->GetDesc(&context->m_desc);
 
         context->m_jobIndex  = 0;
         context->m_jobSize   = 6 * mipCount;
         context->m_inCubemap = inCubemap;
-        context->m_outCubemap = nullptr;
+
+        context->m_mode      = kMode_FilterCubemap;
+        context->m_state     = kState_Processing;
 
 
         return true;
@@ -222,7 +268,7 @@ namespace iblkit
         {
             return false;
         }
-        if(context->m_mode == kMode_None)
+        if(context->m_mode  == kMode_None)
         {
             return false;
         }
@@ -235,9 +281,50 @@ namespace iblkit
             return false;
         }
 
+        // 
+        UINT jobIndex  = context->m_jobIndex;
+        UINT mipIndex  = jobIndex / context->m_desc.ArraySize;
+        UINT faceIndex = jobIndex % context->m_desc.ArraySize;
 
+        const UINT kTile = 8;
+        UINT w = context->m_desc.Width;
+        UINT h = context->m_desc.Height;
 
+        w >>= mipIndex;
+        if(w==0)
+        {
+            w = 1;
+        }
+        h >>= mipIndex;
+        if(h==0)
+        {
+            h = 1;
+        }
 
+        UINT threadGroupX = (w + (kTile-1)) / kTile;
+        UINT threadGroupY = (h + (kTile-1)) / kTile;
+
+        ID3D11UnorderedAccessView* uav = context->m_outCubemap[jobIndex];
+        ID3D11ShaderResourceView*  srv = context->m_inCubemapSRV;
+        ID3D11DeviceContext* imContext = context->m_d3dImContext;
+
+        ID3D11UnorderedAccessView* ppUAV[1]         = { uav };
+        ID3D11ShaderResourceView*  ppSRV[1]         = { srv };
+
+        imContext->CSSetShader(context->m_filterCS, nullptr, 0);
+        imContext->CSSetUnorderedAccessViews(0, 1, ppUAV, nullptr);
+        imContext->CSSetShaderResources     (0, 1, ppSRV);
+        imContext->Dispatch                 (threadGroupX, threadGroupY, 1);
+
+        //  
+        imContext->CSSetShader              (nullptr, nullptr, 0);
+        ID3D11UnorderedAccessView* ppUAViewNULL[1] = { NULL };
+        imContext->CSSetUnorderedAccessViews(0, 1, ppUAViewNULL, NULL);
+        ID3D11ShaderResourceView* ppSRVNULL[1] = { NULL };
+        imContext->CSSetShaderResources(0, 1, ppSRVNULL);
+
+        //  
+        context->m_jobIndex++;
 
         return true;
     }
