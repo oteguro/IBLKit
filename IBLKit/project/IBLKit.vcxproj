@@ -39,6 +39,9 @@
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../shaders/compiled/cubemap_filter.h</HeaderFileOutput>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\shaders\cubemap_func.fxh" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6A5B6D32-5FA6-40DA-9786-71865E7849CF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

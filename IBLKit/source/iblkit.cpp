@@ -120,8 +120,12 @@ namespace iblkit
 
     struct BufferParameter
     {
-        float m_fDummy[4];
-        UINT  m_iDummy[4];
+        float m_faceVector  [4];
+        float m_faceTangent [4];
+        float m_faceBinormal[4];
+        float m_texelOffset [4];
+        float m_roughness   [4];
+        UINT  m_uavSize[4];
 
     }; // struct BufferParameter 
 
@@ -347,6 +351,68 @@ namespace iblkit
         UINT threadGroupX = (w + (kTile-1)) / kTile;
         UINT threadGroupY = (h + (kTile-1)) / kTile;
 
+        // http://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
+        const float faceVector[]   = // Z 
+        {
+             1.0f, 0.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f,
+             0.0f, 1.0f, 0.0f,
+             0.0f,-1.0f, 0.0f,
+             0.0f, 0.0f, 1.0f,
+             0.0f, 0.0f,-1.0f,
+        };
+
+        const float faceTangent[]  = // X 
+        {
+             0.0f, 0.0f,-1.0f,
+             0.0f, 0.0f, 1.0f,
+             1.0f, 0.0f, 0.0f,
+             1.0f, 0.0f, 0.0f,
+             1.0f, 0.0f, 0.0f,
+            -1.0f, 0.0f, 0.0f,
+        };
+
+        const float faceBinormal[] = // Y : flip texcoord. 
+        {
+            0.0f,-1.0f, 0.0f,
+            0.0f,-1.0f, 0.0f,
+            0.0f, 0.0f, 1.0f,
+            0.0f, 0.0f,-1.0f,
+            0.0f,-1.0f, 0.0f,
+            0.0f,-1.0f, 0.0f,
+        };
+
+        BufferParameter param;
+        param.m_faceVector[0]   = faceVector  [faceIndex * 3 + 0];
+        param.m_faceVector[1]   = faceVector  [faceIndex * 3 + 1];
+        param.m_faceVector[2]   = faceVector  [faceIndex * 3 + 2];
+        param.m_faceVector[3]   = 0;
+
+        param.m_faceTangent[0]  = faceTangent [faceIndex * 3 + 0];
+        param.m_faceTangent[1]  = faceTangent [faceIndex * 3 + 1];
+        param.m_faceTangent[2]  = faceTangent [faceIndex * 3 + 2];
+        param.m_faceTangent[3]  = 0;
+
+        param.m_faceBinormal[0] = faceBinormal[faceIndex * 3 + 0];
+        param.m_faceBinormal[1] = faceBinormal[faceIndex * 3 + 1];
+        param.m_faceBinormal[2] = faceBinormal[faceIndex * 3 + 2];
+        param.m_faceBinormal[3] = 0;
+
+        param.m_texelOffset [0] = 1.0f / (float)(w);
+        param.m_texelOffset [1] = 1.0f / (float)(h);
+        param.m_texelOffset [2] = 0;
+        param.m_texelOffset [3] = 0;
+
+        param.m_roughness   [0] = (float)(mipIndex) / (float)(context->m_desc.ArraySize - 1);
+        param.m_roughness   [1] = 0.0f;
+        param.m_roughness   [2] = 0.0f;
+        param.m_roughness   [3] = 0.0f;
+
+        param.m_uavSize[0] = w;
+        param.m_uavSize[1] = h;
+        param.m_uavSize[2] = w / 2;
+        param.m_uavSize[3] = h / 2;
+
         ID3D11UnorderedAccessView* uav = context->m_outCubemap[jobIndex];
         ID3D11ShaderResourceView*  srv = context->m_inCubemapSRV;
         ID3D11SamplerState*        smp = context->m_inCubemapSampler;
@@ -359,6 +425,8 @@ namespace iblkit
         ID3D11Buffer*              ppBUF[1]         = { buf };
 
         imContext->ClearState();
+
+        imContext->UpdateSubresource(context->m_parameter, 0, nullptr, &param, 0, 0);
 
         imContext->CSSetShader(context->m_filterCS, nullptr, 0);
         imContext->CSSetUnorderedAccessViews(0, 1, ppUAV, nullptr);
