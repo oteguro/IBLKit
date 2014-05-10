@@ -2,7 +2,6 @@
 // iblkit.cpp
 // ----------------------------------------------------------------------------
 #include "iblkit.h"
-#include <d3dcompiler.h>
 #include <DirectXMath.h>
 
 #include <cassert>
@@ -118,6 +117,13 @@ namespace iblkit
         }
 
     } // unnamed namespace 
+
+    struct BufferParameter
+    {
+        float m_fDummy[4];
+        UINT  m_iDummy[4];
+
+    }; // struct BufferParameter 
 
     // Start. 
     bool FilteringCubemap(Context*                       context,
@@ -243,6 +249,43 @@ namespace iblkit
             }
         }
 
+        if(context->m_inCubemapSampler == nullptr)
+        {
+            D3D11_SAMPLER_DESC desc;
+
+            ZeroMemory(&desc, sizeof(desc));
+            desc.Filter         = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+            desc.AddressU       = D3D11_TEXTURE_ADDRESS_WRAP;
+            desc.AddressV       = D3D11_TEXTURE_ADDRESS_WRAP;
+            desc.AddressW       = D3D11_TEXTURE_ADDRESS_WRAP;
+            desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+            desc.MinLOD         = 0;
+            desc.MaxLOD         = D3D11_FLOAT32_MAX;
+
+            HRESULT hr = d->CreateSamplerState(&desc, &context->m_inCubemapSampler);
+            if (FAILED(hr))
+            {
+                return false;
+            }
+        }
+
+        if(context->m_parameter == nullptr)
+        {
+            D3D11_BUFFER_DESC desc;
+
+            ZeroMemory(&desc, sizeof(desc));
+            desc.Usage          = D3D11_USAGE_DEFAULT;
+            desc.ByteWidth      = sizeof(BufferParameter);
+            desc.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
+            desc.CPUAccessFlags = 0;
+
+            HRESULT hr = d->CreateBuffer(&desc, nullptr, &context->m_parameter);
+            if (FAILED(hr))
+            {
+                return false;
+            }
+        }
+
         (*outCubemap)->GetDesc(&context->m_desc);
 
         context->m_jobIndex  = 0;
@@ -306,22 +349,36 @@ namespace iblkit
 
         ID3D11UnorderedAccessView* uav = context->m_outCubemap[jobIndex];
         ID3D11ShaderResourceView*  srv = context->m_inCubemapSRV;
+        ID3D11SamplerState*        smp = context->m_inCubemapSampler;
+        ID3D11Buffer*              buf = context->m_parameter;
         ID3D11DeviceContext* imContext = context->m_d3dImContext;
 
         ID3D11UnorderedAccessView* ppUAV[1]         = { uav };
         ID3D11ShaderResourceView*  ppSRV[1]         = { srv };
+        ID3D11SamplerState*        ppSMP[1]         = { smp };
+        ID3D11Buffer*              ppBUF[1]         = { buf };
+
+        imContext->ClearState();
 
         imContext->CSSetShader(context->m_filterCS, nullptr, 0);
         imContext->CSSetUnorderedAccessViews(0, 1, ppUAV, nullptr);
         imContext->CSSetShaderResources     (0, 1, ppSRV);
+        imContext->CSSetSamplers            (0, 1, ppSMP);
+        imContext->CSSetConstantBuffers     (0, 1, ppBUF);
+
         imContext->Dispatch                 (threadGroupX, threadGroupY, 1);
 
         //  
+        ID3D11UnorderedAccessView* ppUAVNULL   [1] = { nullptr };
+        ID3D11ShaderResourceView*  ppSRVNULL   [1] = { nullptr };
+        ID3D11SamplerState*        ppSMPNULL   [1] = { nullptr };
+        ID3D11Buffer*              ppBUFNULL   [1] = { nullptr };
+
         imContext->CSSetShader              (nullptr, nullptr, 0);
-        ID3D11UnorderedAccessView* ppUAViewNULL[1] = { NULL };
-        imContext->CSSetUnorderedAccessViews(0, 1, ppUAViewNULL, NULL);
-        ID3D11ShaderResourceView* ppSRVNULL[1] = { NULL };
-        imContext->CSSetShaderResources(0, 1, ppSRVNULL);
+        imContext->CSSetUnorderedAccessViews(0, 1, ppUAVNULL, nullptr);
+        imContext->CSSetShaderResources     (0, 1, ppSRVNULL);
+        imContext->CSSetSamplers            (0, 1, ppSMPNULL);
+        imContext->CSSetConstantBuffers     (0, 1, ppBUFNULL);
 
         //  
         context->m_jobIndex++;

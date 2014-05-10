@@ -109,7 +109,7 @@ ID3D11UnorderedAccessView*  filteredUAV[6]      ={nullptr, nullptr, nullptr, nul
 
 bool                        anim                = false;
 float                       rad                 = 0.0f;
-int                         displayMode         = 0;
+int                         displayMode         = 1;
 
 // 
 ATOM                    MyRegisterClass (HINSTANCE hInstance);
