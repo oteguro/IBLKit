@@ -78,6 +78,4 @@ float3 ImportanceSampleGGX(float2 e, float roughness, float3 normal)
     return tangentX * h.x + tangentY * h.y + normal * h.z;
 }
 
-float3 PrefilterEnvMap(float roughness, float3 R){    float3 N = R;    float3 V = R;}
-
 #endif // CUBEMAP_FUNC_FXH 
