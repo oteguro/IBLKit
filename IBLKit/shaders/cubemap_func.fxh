@@ -28,13 +28,15 @@ float2 Hammersley(uint i, uint N)
     return float2(float(i)/float(N), radicalInverse_VdC(i));
 }
 
-//float2 Hammersley(uint index, uint numSamples, uint2 randomSeed)
-//{
-//    float e1 = frac((float)index / numSamples + float(randomSeed.x & 0xffff) / (1 << 16));
-//    float e2 = float(reversebits(index) ^ randomSeed.y) * 2.3283064365386963e-10;
-//
-//    return float2(e1, e2);
-//}
+/*
+float2 Hammersley(uint index, uint numSamples, uint2 randomSeed)
+{
+    float e1 = frac((float)index / numSamples + float(randomSeed.x & 0xffff) / (1 << 16));
+    float e2 = float(reversebits(index) ^ randomSeed.y) * 2.3283064365386963e-10;
+
+    return float2(e1, e2);
+}
+*/
 
 float3 ImportanceSampleBlinn(float2 e, float roughness, float3 normal)
 {

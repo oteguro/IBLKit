@@ -469,7 +469,7 @@ HRESULT InitDevice()
     // feature level : DX11 class only. 
     D3D_FEATURE_LEVEL featureLevels[] =
     {
-        D3D_FEATURE_LEVEL_11_1,
+//      D3D_FEATURE_LEVEL_11_1,
         D3D_FEATURE_LEVEL_11_0,
     };
     UINT numFeatureLevels = ARRAYSIZE(featureLevels);
@@ -852,7 +852,7 @@ void Update()
     UINT height;
     ClientRectSize(width, height);
 
-    const float R = 4.0f;
+    const float R = 2.5f;
     XMVECTOR Eye = XMVectorSet(R*sinf(rad), 0.0f, R*cosf(rad), 0.0f);
     XMVECTOR At  = XMVectorSet(0.0f, 0.0f,  0.0f, 0.0f);
     XMVECTOR Up  = XMVectorSet(0.0f, 1.0f,  0.0f, 0.0f);
@@ -875,7 +875,7 @@ void Update()
 
     if(anim)
     {
-        rad += 0.0001f;
+        rad += 0.001f;
         if (rad >  2.0f*PIf)
         {
             rad -= 2.0f*PIf;
@@ -884,7 +884,10 @@ void Update()
 
     if(iblContext.Processing())
     {
-        ProcessFiltering(&iblContext);
+        if(!ProcessFiltering(&iblContext))
+        {
+            SaveTextureToDDSFile(filteredIBL, L".\\datas\\ibl\\Ennis House.ibl.dds");
+        }
     }
 
 }

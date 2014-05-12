@@ -27,7 +27,7 @@ float3 PrefilterEnvMap(float roughness, float3 R)
     float3 prefilteredColor = 0;
     float  totalWeight      = 0;
 
-    const uint numSamples = 1024;
+    const uint numSamples = 8192*4;
     for(uint i=0; i<numSamples; ++i)
     {
         float2 xi  = Hammersley(i, numSamples);
@@ -60,21 +60,23 @@ void CS(uint3 groupID           : SV_GroupID,
         int2 ipos = (int2)(pos.xy);
         int2 ihsz = (int2)(uavSize.zw);
 
-        float2 offsetCoord = ((float2)(ipos.xy - ihsz.xy) / (float2)(ihsz.xy)) + texelOffset.xy;
+        float  inRoughness = roughness.x;
+        float4 oColor;
 
-        // compute 'base normal'. 
-        float3 normalDirection  = zDirection.xyz + (xDirection.xyz * offsetCoord.xxx) + (yDirection.xyz * offsetCoord.yyy);
-               normalDirection  = normalize(normalDirection.xyz);
+        [branch] if(outWidth==1 && outHeight==1)
+        {
+            float3 normalDirection  = zDirection.xyz;
+            oColor = float4(PrefilterEnvMap(inRoughness, normalDirection.xyz), 1);
+        }
+        else
+        {
+            float2 offsetCoord = ((float2)(ipos.xy - ihsz.xy) / (float2)(ihsz.xy)) + texelOffset.xy;
 
-        // 
-        float inRoughness = 0.0; // roughness.x;
-        float4 oColor = float4(PrefilterEnvMap(inRoughness, normalDirection.xyz), 1);
-//        float4 oColor = (outWidth >= 256) ? float4(1,0,0,1) :
-//                        (outWidth >= 128) ? float4(0,1,0,1) :
-//                        (outWidth >=  64) ? float4(0,0,1,1) : float4(0,0.25,0.25,1);
+            float3 normalDirection  = zDirection.xyz + (xDirection.xyz * offsetCoord.xxx) + (yDirection.xyz * offsetCoord.yyy);
+                   normalDirection  = normalize(normalDirection.xyz);
 
-//        float  oLod   = 0.0;
-//        float4 oColor = txIBL.SampleLevel(smIBL, normalDirection.xyz, oLod);
+            oColor = float4(PrefilterEnvMap(inRoughness, normalDirection.xyz), 1);
+        }
 
         txOUT[int3(pos.xy, 0)] = oColor.xyzw;
     }

@@ -403,14 +403,18 @@ namespace iblkit
         param.m_texelOffset [2] = 0;
         param.m_texelOffset [3] = 0;
 
-        param.m_roughness   [0] = (float)(mipIndex) / (float)(context->m_desc.ArraySize - 1);
+        float fMipIndex  = (float)(mipIndex);
+        float fMipLevels = (float)(context->m_desc.MipLevels);
+
+//      param.m_roughness   [0] = (float)(mipIndex) / (float)(context->m_desc.ArraySize - 1);
+        param.m_roughness   [0] = powf(2.0f, (fMipIndex-fMipLevels+3.0f));
         param.m_roughness   [1] = 0.0f;
         param.m_roughness   [2] = 0.0f;
         param.m_roughness   [3] = 0.0f;
 
         param.m_uavSize[0] = w;
         param.m_uavSize[1] = h;
-        param.m_uavSize[2] = w / 2;
+        param.m_uavSize[2] = w / 2; if(param.m_uavSize[2])
         param.m_uavSize[3] = h / 2;
 
         ID3D11UnorderedAccessView* uav = context->m_outCubemap[jobIndex];
