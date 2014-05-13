@@ -243,7 +243,7 @@ namespace iblkit
 
             desc.Format                         = tex2DDesc.Format;
             desc.ViewDimension                  = D3D11_SRV_DIMENSION_TEXTURECUBE;
-            desc.TextureCube.MipLevels          = mipCount;
+            desc.TextureCube.MipLevels          = tex2DDesc.MipLevels;
             desc.TextureCube.MostDetailedMip    = 0;
 
             HRESULT hr = d->CreateShaderResourceView(inCubemap, &desc, &context->m_inCubemapSRV);

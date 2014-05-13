@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="external">
+      <UniqueIdentifier>{d5474c65-7dae-47e9-abf1-ea9037eb1b53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="external\DirectXTex">
+      <UniqueIdentifier>{f03740c6-3125-4219-a9e0-6facc1ed3beb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="external\DirectXTex\DDSTextureLoader">
+      <UniqueIdentifier>{426fa160-47cb-4c95-85ea-c82d5a3e9455}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\ibl_kit_cui.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\IBLKitGUI\external\DirectXTex\DDSTextureLoader\DDSTextureLoader.cpp">
+      <Filter>external\DirectXTex\DDSTextureLoader</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\IBLKitGUI\external\DirectXTex\DDSTextureLoader\DDSTextureLoader.h">
+      <Filter>external\DirectXTex\DDSTextureLoader</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
