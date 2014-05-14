@@ -10,10 +10,10 @@
 #include <stdio.h>
 #include <tchar.h>
 
-#include "../../IBLKit/source/_IMPL/scope_exit.h"
 #include "../../IBLKitGUI/external/DirectXTex/DDSTextureLoader/DDSTextureLoader.h"
 
 #include <iblkit.h>
+#include <scope_exit.h>
 
 #pragma comment(lib, "d3d11.lib")
 

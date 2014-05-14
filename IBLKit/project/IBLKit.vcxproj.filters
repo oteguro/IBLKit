@@ -23,8 +23,11 @@
     <ClInclude Include="..\include\iblkit.h">
       <Filter>headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\source\_IMPL\scope_exit.h">
-      <Filter>src\_IMPL</Filter>
+    <ClInclude Include="..\include\sh3.h">
+      <Filter>headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\scope_exit.h">
+      <Filter>headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -33,6 +36,9 @@
     </ClCompile>
     <ClCompile Include="..\source\iblkit.cpp">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\source\_IMPL\sh3.cpp">
+      <Filter>src\_IMPL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

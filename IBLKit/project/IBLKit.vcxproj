@@ -13,11 +13,13 @@
   <ItemGroup>
     <ClInclude Include="..\include\context.h" />
     <ClInclude Include="..\include\iblkit.h" />
-    <ClInclude Include="..\source\_IMPL\scope_exit.h" />
+    <ClInclude Include="..\include\scope_exit.h" />
+    <ClInclude Include="..\include\sh3.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\source\context.cpp" />
     <ClCompile Include="..\source\iblkit.cpp" />
+    <ClCompile Include="..\source\_IMPL\sh3.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\shaders\cubemap_filter.hlsl">

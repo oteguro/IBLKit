@@ -7,7 +7,7 @@
 #include <cassert>
 #include <algorithm>
 
-#include "./_IMPL/scope_exit.h"
+#include "../include/scope_exit.h"
 
 #include "../shaders/compiled/cubemap_filter.h"
 
