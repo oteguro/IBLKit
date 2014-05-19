@@ -126,6 +126,7 @@ namespace iblkit
         float m_texelOffset [4];
         float m_roughness   [4];
         UINT  m_uavSize[4];
+        UINT  m_sampleCount [4];
 
     }; // struct BufferParameter 
 
@@ -416,6 +417,11 @@ namespace iblkit
         param.m_uavSize[1] = h;
         param.m_uavSize[2] = w / 2; if(param.m_uavSize[2])
         param.m_uavSize[3] = h / 2;
+
+        param.m_sampleCount[0] = 1024 << (mipIndex);
+        param.m_sampleCount[1] = 0;
+        param.m_sampleCount[2] = 0;
+        param.m_sampleCount[3] = 0;
 
         ID3D11UnorderedAccessView* uav = context->m_outCubemap[jobIndex];
         ID3D11ShaderResourceView*  srv = context->m_inCubemapSRV;

@@ -17,6 +17,7 @@ cbuffer CSBuffer : register( b0 )
     float4      texelOffset;
     float4      roughness;
     uint4       uavSize;
+    uint4       sampleCount;
 }
 
 float3 PrefilterEnvMap(float roughness, float3 R)
@@ -27,7 +28,7 @@ float3 PrefilterEnvMap(float roughness, float3 R)
     float3 prefilteredColor = 0;
     float  totalWeight      = 0;
 
-    const uint numSamples = 8192*8;
+    const uint numSamples = sampleCount.x;//8192*8;
     for(uint i=0; i<numSamples; ++i)
     {
         float2 xi  = Hammersley(i, numSamples);
